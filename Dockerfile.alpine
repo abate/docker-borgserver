@@ -1,0 +1,27 @@
+############################################################
+# Dockerfile to build borgbackup server images
+############################################################
+FROM alpine:3.10
+
+RUN apk add --no-cache borgbackup openssh-server && \
+    adduser -s /bin/bash -D borg && \
+    mkdir /home/borg/.ssh && \
+    chmod 700 /home/borg/.ssh && \
+    chown borg:borg /home/borg/.ssh && \
+    mkdir /run/sshd && \
+    rm -f /etc/ssh/ssh_host*key* && \
+    rm -rf /var/tmp/* /tmp/*
+
+# Volume for SSH-Keys
+VOLUME /sshkeys
+
+# Volume for borg repositories
+VOLUME /backup
+
+COPY ./data/run.sh /run.sh
+COPY ./data/sshd_config /etc/ssh/sshd_config
+
+ENTRYPOINT /run.sh
+
+# Default SSH-Port for clients
+EXPOSE 22
